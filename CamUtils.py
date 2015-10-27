@@ -20,7 +20,11 @@ class TimeStamp:
         """Gives a string suitable for use as a filename or database key,
         such that sorting a set of such strings lexicographically yields them
         in alphabetical order"""
-        return "-".join([str(element) for element in self.d.timetuple()[:-3]]) 
+        return "-".join([str(element) for element in self.d.timetuple()[:-3]])
+    def display_string(self):
+        return str(self.d)
+    def datetime(self):
+        return self.d
 
 class TimedSnapshotter:
     """This packages up Snapshotter and TimeStamp into something
