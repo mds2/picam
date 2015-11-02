@@ -1,4 +1,4 @@
-import CamUtil
+import CamUtils
 import SimpleHTTPServer
 import SocketServer
 
@@ -7,9 +7,11 @@ def spew_simple_webpage(snaplist):
     outfile.write("<html>\n")
     outfile.write("<head><title>Simple webcam v 0.2</title></head>\n")
     outfile.write("<body>\n")
-    for (title, file) in snaplist.reverse():
-        outfile.write("<br/><br/>\n<img src=\"" + file + "\"/>\n")
-        outfile.write("<a href=\"" + file + "\">" + title + "</a>\n")
+    tmp = snaplist
+    tmp.reverse()
+    for (title, filename) in tmp:
+        outfile.write("<br/><br/>\n<img src=\"" + filename + "\"/>\n")
+        outfile.write("<a href=\"" + filename + "\">" + title + "</a>\n")
     outfile.write("<hr/>\n")
     outfile.write("<a href=\"shots\">shots</a>\n")
     outfile.write("</body></html>")
@@ -19,12 +21,14 @@ class Webcam:
     Does it in such a way that would never fly in a commercial
     web environemnt"""
     def __init__(self, maxsnaps=10, handlesnaps = spew_simple_webpage):
-        self.snapper = TimedSnapshotter()
+        self.snapper = CamUtils.TimedSnapshotter()
         self.snapnames = []
+        self.maxsnaps = maxsnaps
+        self.handlesnaps = handlesnaps
     def webcam_looponce(self):
         (timestamp, filename) = self.snapper.work_and_wait()
         self.snapnames.append((timestamp.display_string(), filename))
-        lop_off = max(0, len(self.snapnames) - maxsnaps)
+        lop_off = max(0, len(self.snapnames) - self.maxsnaps)
         self.snapnames = self.snapnames[lop_off:]
         self.handlesnaps(self.snapnames)
 
@@ -36,7 +40,7 @@ if __name__ == "__main__":
             w.webcam_looponce()
     def runwebserver():
         handler = SimpleHTTPServer.SimpleHTTPRequestHandler
-        port = 8000
+        port = 8002
         httpd = SocketServer.TCPServer(("", port), handler)
         print "serving at port " + str(port)
         httpd.serve_forever()

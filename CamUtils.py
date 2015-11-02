@@ -7,7 +7,7 @@ class Snapshotter:
     def __init__(self, w=640, h=480, brightness=100):
         self.args = ["fswebcam", "-r",
                      str(w) + "x" + str(h),
-                     "--set", "brightnessness=" + str(brightness) + "%"]
+                     "--set", "brightness=" + str(brightness) + "%"]
     def snap(self, filename):
         p = subprocess.Popen(self.args + [filename])
         return p.wait()
@@ -44,7 +44,7 @@ class TimedSnapshotter:
         self.last_time = 0.0
     def dowork(self):
         t = TimeStamp()
-        filename = path.join(self,dir, t.sortable_string() + ".jpg")
+        filename = path.join(self.dir, t.sortable_string() + ".jpg")
         self.snapper.snap(filename)
         return (t, filename)
     def work_and_wait(self):
