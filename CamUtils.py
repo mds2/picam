@@ -3,14 +3,36 @@ import datetime
 from os import path
 import time
 
-class Snapshotter:
-    def __init__(self, w=640, h=480, brightness=100):
-        self.args = ["fswebcam", "-r",
-                     str(w) + "x" + str(h),
-                     "--set", "brightness=" + str(brightness) + "%"]
-    def snap(self, filename):
-        p = subprocess.Popen(self.args + [filename])
-        return p.wait()
+try: # by default we want our snapshots to come from the raspberry pi camera
+    import picamera
+    class Snapshotter:
+        """Defines a class that allows us to take a snapshot to a filename
+        very very thin wrapper around picamera.PiCamera
+        only relevant method is "snap"
+        """
+        def __init__(self, w=1280, h=960, brightness=50):
+            self.w = w
+            self.h = h
+            self.cam = picamera.PiCamera()
+            if brightness:
+                self.cam.brightness = brightness
+        def snap(self, filename):
+            self.cam.capture(filename, resize=(self.w, self.h))
+except ImportError: # if that fails, use webcam
+    class Snapshotter:
+        """Fallback Snapshotter class that uses webcam over USB
+        signature should match the Snapshotter we use when we use the built-in
+        picamera
+        """
+        def __init__(self, w=640, h=480, brightness=100):
+            if not brightness:
+                brightness = 100
+            self.args = ["fswebcam", "-r",
+                         str(w) + "x" + str(h),
+                         "--set", "brightness=" + str(brightness) + "%"]
+        def snap(self, filename):
+            p = subprocess.Popen(self.args + [filename])
+            return p.wait()
 
 class TimeStamp:
     def __init__(self):
@@ -33,7 +55,7 @@ class TimedSnapshotter:
     snapshot
     TODO : rename
     """
-    def __init__(self, size=(640,480), interval=60, bright=100, dir="shots"):
+    def __init__(self, size=(640,480), interval=1.0, bright=None, dir="shots"):
         """ This class manages a webcam, keeps a simple webpage up to date,
         and also tries to make a webpage of thumbs
         """

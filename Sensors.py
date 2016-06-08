@@ -18,7 +18,7 @@ class GPIOSensor:
         return GPIO.input(self.pin) == 1
 
     def loop_and_poll(self, callback, timeout_ms=300, history=10):
-        should_loop = true
+        should_loop = True
         readings = []
         while should_loop:
             sleep_in_seconds(timeout_ms * 0.01)
@@ -28,3 +28,15 @@ class GPIOSensor:
             readings = readings[num_items_to_trim:]
             readings.reverse()
             should_loop = callback(readings, self.is_on())
+
+    def simple_loop(self, callback, timeout_ms=300):
+        def wrapped(readings, is_on):
+            if (len(readings) < 1):
+                return True
+            if (readings[0] > 0 and (len(readings) < 2 or readings[1] <= 0)):
+                print "Triggered"
+                print ("readings are [" +
+                       ",".join([str(r) for r in readings]) + "]") 
+                callback()
+            return True
+        self.loop_and_poll(wrapped, timeout_ms, history=10)

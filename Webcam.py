@@ -2,6 +2,8 @@ import CamUtils
 import SimpleHTTPServer
 import SocketServer
 
+import Sensors
+
 def spew_simple_webpage(snaplist):
     outfile = open("index.html", "w")
     outfile.write("<html>\n")
@@ -27,6 +29,7 @@ class Webcam:
         self.handlesnaps = handlesnaps
     def webcam_looponce(self):
         (timestamp, filename) = self.snapper.work_and_wait()
+        print "Wrote to file \"" + filename + "\""
         self.snapnames.append((timestamp.display_string(), filename))
         lop_off = max(0, len(self.snapnames) - self.maxsnaps)
         self.snapnames = self.snapnames[lop_off:]
@@ -36,8 +39,8 @@ class Webcam:
 if __name__ == "__main__":
     def runwebcam():
         w = Webcam()
-        while True:
-            w.webcam_looponce()
+        s = Sensors.GPIOSensor()
+        s.simple_loop(w.webcam_looponce)
     def runwebserver():
         handler = SimpleHTTPServer.SimpleHTTPRequestHandler
         port = 8002
